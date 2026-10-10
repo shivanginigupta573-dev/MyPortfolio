@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #FAFCFE;
+  --color-ice: #E3F2FD;
+  --color-sky: #90CAF9;
+  --color-brand: #2196F3;
+  --color-ink: #0D47A1;
+  --color-paper-white: #FAFCFE;
+  --color-ink-deep: #082B66;
+  --color-ink-muted: #336699;
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+
+  --shadow-notebook: 0 10px 30px -5px rgba(13, 71, 161, 0.05), 0 0 0 1px rgba(144, 202, 249, 0.3);
+  --shadow-notebook-hover: 0 20px 40px -10px rgba(13, 71, 161, 0.12), 0 0 0 1.5px rgba(33, 150, 243, 0.5);
+}
+
+:root {
+  --canvas: #FAFCFE;
+  --ice: #E3F2FD;
+  --sky: #90CAF9;
+  --brand: #2196F3;
+  --ink: #0D47A1;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: #FAFCFE;
+  color: #0D47A1;
+}
+
+body {
+  background-color: #FAFCFE;
+  color: #0D47A1;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: #E3F2FD;
+  color: #0D47A1;
+}
+
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, rgba(144, 202, 249, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(144, 202, 249, 0.15) 1px, transparent 1px);
+}
