@@ -1,27 +1,27 @@
 import { SiteConfig } from "@/types";
 import { publicEnv } from "@/lib/env";
 
-const name = publicEnv("NEXT_PUBLIC_SITE_NAME", "Your Name");
+const name = publicEnv("NEXT_PUBLIC_SITE_NAME", "Shivangini");
 const title =
   publicEnv("NEXT_PUBLIC_SITE_TITLE") ||
-  `${name} — ${publicEnv("NEXT_PUBLIC_SITE_SUBTITLE", "Software Engineer")}`;
+  `${name} — ${publicEnv("NEXT_PUBLIC_SITE_SUBTITLE", "Computer Science Student")}`;
 
 export const siteConfig: SiteConfig = {
   name,
   title,
-  role: publicEnv("NEXT_PUBLIC_SITE_ROLE", "SOFTWARE ENGINEER"),
-  tagline: publicEnv("NEXT_PUBLIC_SITE_TAGLINE", `Hello, I'm ${name.split(" ")[0]}.`),
+  role: publicEnv("NEXT_PUBLIC_SITE_ROLE", "UNDERGRAD CS STUDENT"),
+  tagline: publicEnv("NEXT_PUBLIC_SITE_TAGLINE", "Hi, I'm Shivangini."),
   statement: publicEnv(
     "NEXT_PUBLIC_SITE_STATEMENT",
-    "I build things, then figure out why they work."
+    "Undergrad CS student at NIT Durgapur."
   ),
   bio: publicEnv(
     "NEXT_PUBLIC_SITE_BIO",
-    "Software engineer focused on building robust full-stack applications and exploring system internals."
+    "Undergraduate Computer Science student at NIT Durgapur building thoughtful products and learning by shipping."
   ),
   engineeringPhilosophy: publicEnv(
     "NEXT_PUBLIC_SITE_PHILOSOPHY",
-    "I like understanding what happens underneath the button."
+    "I like understanding how things work before I improve them."
   ),
   location: publicEnv("NEXT_PUBLIC_SITE_LOCATION", "India"),
   email: publicEnv("NEXT_PUBLIC_SITE_EMAIL", "you@example.com"),
@@ -36,9 +36,9 @@ export const siteConfig: SiteConfig = {
 
 export const siteUrl = publicEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 
-export const siteSubtitle = publicEnv("NEXT_PUBLIC_SITE_SUBTITLE", "Software Engineer");
+export const siteSubtitle = publicEnv("NEXT_PUBLIC_SITE_SUBTITLE", "Computer Science Student");
 
 export const siteHeroIntro = publicEnv(
   "NEXT_PUBLIC_SITE_HERO_INTRO",
-  "I'm a software engineer focused on building clean web applications, exploring NLP pipelines, and diving into system internals."
+  "I build thoughtful things and enjoy figuring out how they work."
 );
