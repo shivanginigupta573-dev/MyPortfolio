@@ -12,40 +12,37 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme === "dark");
+  root.style.colorScheme = theme;
+  localStorage.setItem("theme", theme);
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored === "light" || stored === "dark") {
-      setThemeState(stored);
-      document.documentElement.classList.toggle("dark", stored === "dark");
-    } else {
-      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial = systemDark ? "dark" : "light";
-      setThemeState(initial);
-      document.documentElement.classList.toggle("dark", initial === "dark");
-    }
+    const initialTheme = stored === "light" || stored === "dark" ? stored : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    setThemeState(initialTheme);
+    applyTheme(initialTheme);
+    setMounted(true);
   }, []);
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
+  const setTheme = (nextTheme: Theme) => {
+    setThemeState(nextTheme);
+    applyTheme(nextTheme);
   };
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  // Prevent flash by mounting gracefully
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      <div className={mounted ? "" : "opacity-0 transition-opacity duration-150"}>
-        {children}
-      </div>
+      <div className={mounted ? "" : "opacity-0 transition-opacity duration-150"}>{children}</div>
     </ThemeContext.Provider>
   );
 }

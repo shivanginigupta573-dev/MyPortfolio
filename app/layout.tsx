@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Fraunces, JetBrains_Mono } from "next/font/google";
+import { Caveat, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/layout/Navbar";
@@ -13,10 +13,10 @@ const fontSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const fontDisplay = Fraunces({
+const fontDisplay = Caveat({
   subsets: ["latin"],
   variable: "--font-display",
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
