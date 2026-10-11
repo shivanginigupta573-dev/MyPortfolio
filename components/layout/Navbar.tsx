@@ -13,7 +13,7 @@ const dropdownItems = [
   { name: "About Me", href: "/about" },
   { name: "Experience", href: "/about#experience" },
   { name: "Skills", href: "/about#skills" },
-  { name: "Resume", href: "/contact" },
+  { name: "Resume", href: "https://drive.google.com/file/d/1XwWGLJ6R5EF8UY4AOOYaATAzymeIjhSF/view?usp=drive_link" },
   { name: "Contact", href: "/contact" },
 ];
 
