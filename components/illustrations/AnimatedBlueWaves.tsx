@@ -1,188 +1,248 @@
-
 "use client";
 
-import { useState, type PointerEvent } from "react";
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-} from "motion/react";
+import { motion, useReducedMotion, useTransform, type MotionValue } from "motion/react";
 
-export function AnimatedBlueWaves() {
-  const reduceMotion = useReducedMotion();
-  const [pointer, setPointer] = useState({ x: 50, y: 40, active: false });
+interface AnimatedBlueWavesProps {
+  pointerX: MotionValue<number>;
+  pointerY: MotionValue<number>;
+  pointerPresence: MotionValue<number>;
+}
 
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
+const SVG_WIDTH = 1440;
+const SVG_HEIGHT = 900;
 
-  const smoothX = useSpring(pointerX, {
-    stiffness: 45,
-    damping: 22,
-    mass: 1,
-  });
+interface WaveLayer {
+  baseline: number;
+  amplitude: number;
+  phase: number;
+  ripple: number;
+  color: string;
+  darkColor: string;
+  opacity: number;
+  darkOpacity: number;
+  parallax: number;
+}
 
-  const smoothY = useSpring(pointerY, {
-    stiffness: 45,
-    damping: 22,
-    mass: 1,
-  });
+const waveLayers: WaveLayer[] = [
+  {
+    baseline: 545,
+    amplitude: 42,
+    phase: 0.3,
+    ripple: 26,
+    color: "url(#wave-pale)",
+    darkColor: "url(#wave-dark-pale)",
+    opacity: 0.7,
+    darkOpacity: 0.52,
+    parallax: -24,
+  },
+  {
+    baseline: 620,
+    amplitude: 50,
+    phase: 1.8,
+    ripple: -34,
+    color: "url(#wave-sky)",
+    darkColor: "url(#wave-dark-sky)",
+    opacity: 0.58,
+    darkOpacity: 0.58,
+    parallax: 31,
+  },
+  {
+    baseline: 710,
+    amplitude: 44,
+    phase: 3.1,
+    ripple: 40,
+    color: "url(#wave-blue)",
+    darkColor: "url(#wave-dark-blue)",
+    opacity: 0.36,
+    darkOpacity: 0.54,
+    parallax: -40,
+  },
+  {
+    baseline: 800,
+    amplitude: 34,
+    phase: 4.4,
+    ripple: -28,
+    color: "url(#wave-deep)",
+    darkColor: "url(#wave-dark-deep)",
+    opacity: 0.2,
+    darkOpacity: 0.55,
+    parallax: 48,
+  },
+];
 
-  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (event.pointerType === "touch") return;
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-
-    setPointer({ x: x * 100, y: y * 100, active: true });
-    pointerX.set((x - 0.5) * 24);
-    pointerY.set((y - 0.5) * 12);
-  }
-
-  function handlePointerLeave() {
-    setPointer((current) => ({ ...current, active: false }));
-    pointerX.set(0);
-    pointerY.set(0);
-  }
-
-  const drift = (duration: number, delay = 0) =>
-    reduceMotion
-      ? { duration: 0 }
-      : {
-          duration,
-          delay,
-          repeat: Infinity,
-          repeatType: "mirror" as const,
-          ease: "easeInOut" as const,
-        };
+function WavePath({
+  layer,
+  pointerX,
+  pointerY,
+  pointerPresence,
+  reduceMotion,
+  dark = false,
+}: AnimatedBlueWavesProps & {
+  layer: WaveLayer;
+  reduceMotion: boolean;
+  dark?: boolean;
+}) {
+  const path = useTransform(
+    [pointerX, pointerY, pointerPresence],
+    ([x, y, presence]) =>
+      makeWavePath(
+        layer,
+        reduceMotion ? 0.5 : (x as number),
+        reduceMotion ? 0.5 : (y as number),
+        reduceMotion ? 0 : (presence as number)
+      )
+  );
+  const translateX = useTransform(
+    pointerX,
+    (value) => (reduceMotion ? 0 : (value - 0.5) * layer.parallax)
+  );
 
   return (
-    <div
-      aria-hidden="true"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      className="pointer-events-auto absolute inset-x-0 bottom-0 z-0 h-[360px] overflow-hidden sm:h-[430px] lg:h-[500px]"
-    >
-      {/* Ambient colour behind the mist */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#C5E4FF]/60 via-[#EAF5FF]/30 to-transparent dark:from-[#071329] dark:via-[#10213D]/60 dark:to-transparent" />
+    <motion.path
+      d={path}
+      fill={dark ? layer.darkColor : layer.color}
+      className={dark ? "hidden dark:block" : "dark:hidden"}
+      opacity={dark ? layer.darkOpacity : layer.opacity}
+      animate={reduceMotion ? {} : { y: [0, -7, 0] }}
+      transition={{
+        duration: 19 + layer.phase * 2,
+        delay: layer.phase,
+        repeat: Infinity,
+        repeatType: "mirror",
+        ease: "easeInOut",
+      }}
+      style={{ x: translateX }}
+    />
+  );
+}
 
-      {/* Cursor-following glow */}
+function makeWavePath(
+  layer: WaveLayer,
+  pointerX: number,
+  pointerY: number,
+  presence: number
+) {
+  const points = Array.from({ length: 9 }, (_, index) => {
+    const x = (SVG_WIDTH / 8) * index;
+    const broadWave =
+      Math.sin((index / 8) * Math.PI * 2 + layer.phase) * layer.amplitude +
+      Math.sin((index / 8) * Math.PI * 4 + layer.phase * 0.6) * 12;
+    const distanceX = (x - pointerX * SVG_WIDTH) / 245;
+    const distanceY = (layer.baseline - pointerY * SVG_HEIGHT) / 440;
+    const influence = Math.exp(-(distanceX * distanceX) * 0.5 - distanceY * distanceY * 0.5);
+    const localRipple =
+      Math.sin(distanceX * 2.2) * influence * layer.ripple * presence;
+
+    return { x, y: layer.baseline + broadWave + localRipple };
+  });
+
+  let path = `M ${points[0].x} ${points[0].y}`;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const current = points[index];
+    const next = points[index + 1];
+    const middleX = (current.x + next.x) / 2;
+    const middleY = (current.y + next.y) / 2;
+    path += ` Q ${current.x} ${current.y} ${middleX} ${middleY}`;
+  }
+  const last = points[points.length - 1];
+  path += ` Q ${last.x} ${last.y} ${SVG_WIDTH} ${last.y} L ${SVG_WIDTH} ${SVG_HEIGHT} L 0 ${SVG_HEIGHT} Z`;
+  return path;
+}
+
+export function AnimatedBlueWaves({
+  pointerX,
+  pointerY,
+  pointerPresence,
+}: AnimatedBlueWavesProps) {
+  const reduceMotion = useReducedMotion();
+  const glowLeft = useTransform(pointerX, (value) => `${value * 100}%`);
+  const glowTop = useTransform(pointerY, (value) => `${value * 100}%`);
+  const glowOpacity = useTransform(pointerPresence, [0, 1], [0, 0.66]);
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-[#C5E4FF]/60 via-[#EAF5FF]/30 to-transparent dark:from-[#071329] dark:via-[#10213D]/50 dark:to-transparent" />
+
       <motion.div
-        className="pointer-events-none absolute h-[300px] w-[300px] rounded-full blur-[85px] transition-opacity duration-700 sm:h-[420px] sm:w-[420px]"
-        animate={{ opacity: pointer.active ? 0.8 : 0.35 }}
-        transition={{ duration: 0.5 }}
+        className="absolute h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[420px] sm:w-[420px]"
         style={{
-          left: `${pointer.x}%`,
-          top: `${pointer.y}%`,
-          x: "-50%",
-          y: "-50%",
+          left: glowLeft,
+          top: glowTop,
+          opacity: reduceMotion ? 0 : glowOpacity,
           background:
-            "radial-gradient(circle, rgba(96,165,250,0.42) 0%, rgba(147,197,253,0.18) 38%, transparent 72%)",
+            "radial-gradient(circle, rgba(96,165,250,0.28) 0%, rgba(147,197,253,0.12) 40%, transparent 72%)",
         }}
       />
 
-      {/* Slow, soft atmospheric layers */}
-      <motion.div
-        className="absolute -inset-x-[12%] bottom-[2%] h-[85%] rounded-[50%] bg-[#B9DDFB]/45 blur-[65px] dark:bg-[#244B83]/30"
-        animate={reduceMotion ? {} : { x: [0, 35, -12, 0], y: [0, -15, 5, 0] }}
-        transition={drift(24)}
-        style={{ x: smoothX, y: smoothY }}
-      />
-
-      <motion.div
-        className="absolute -inset-x-[18%] bottom-[-20%] h-[85%] rounded-[50%] bg-[#8CC8FF]/35 blur-[75px] dark:bg-[#1D3F70]/45"
-        animate={reduceMotion ? {} : { x: [0, -35, 18, 0], y: [0, 12, -8, 0] }}
-        transition={drift(30, 2)}
-      />
-
-      <motion.div
-        className="absolute -left-[15%] bottom-[10%] h-[65%] w-[75%] rounded-[50%] bg-white/50 blur-[65px] dark:bg-[#4778B8]/15"
-        animate={reduceMotion ? {} : { x: [0, 30, -20, 0], scale: [1, 1.08, 0.98, 1] }}
-        transition={drift(27, 1)}
-      />
-
-      <motion.div
-        className="absolute -right-[20%] bottom-[-2%] h-[75%] w-[80%] rounded-[50%] bg-[#9ACBFF]/40 blur-[80px] dark:bg-[#152F56]/50"
-        animate={reduceMotion ? {} : { x: [0, -28, 12, 0], scale: [1, 0.96, 1.04, 1] }}
-        transition={drift(32, 3)}
-      />
-
-      {/* Fine luminous strands instead of solid ribbons */}
-      <motion.svg
-        viewBox="0 0 1440 500"
+      <svg
+        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         preserveAspectRatio="none"
-        className="absolute inset-0 h-full w-full opacity-50 dark:opacity-40"
-        fill="none"
-        style={{ x: smoothX, y: smoothY }}
+        className="absolute inset-0 h-full w-full"
       >
-        <motion.path
-          d="M-40 310 C180 240 310 350 540 300 S900 245 1100 295 S1330 265 1480 290"
-          stroke="#77B9F5"
-          strokeWidth="1.5"
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  d: [
-                    "M-40 310 C180 240 310 350 540 300 S900 245 1100 295 S1330 265 1480 290",
-                    "M-40 280 C180 330 350 255 550 310 S900 335 1100 275 S1330 320 1480 260",
-                    "M-40 310 C180 240 310 350 540 300 S900 245 1100 295 S1330 265 1480 290",
-                  ],
-                }
-          }
-          transition={drift(20)}
-        />
-        <motion.path
-          d="M-40 365 C170 320 370 390 570 350 S930 320 1130 365 S1350 340 1480 355"
-          stroke="#A9D6FF"
-          strokeWidth="1"
-          animate={
-            reduceMotion
-              ? {}
-              : {
-                  d: [
-                    "M-40 365 C170 320 370 390 570 350 S930 320 1130 365 S1350 340 1480 355",
-                    "M-40 345 C180 395 370 330 575 370 S930 380 1135 340 S1350 380 1480 335",
-                    "M-40 365 C170 320 370 390 570 350 S930 320 1130 365 S1350 340 1480 355",
-                  ],
-                }
-          }
-          transition={drift(26, 1)}
-        />
-      </motion.svg>
+        <defs>
+          <linearGradient id="wave-pale" x1="0" x2="0.85" y1="0" y2="1">
+            <stop stopColor="#FAFCFE" stopOpacity="0.9" />
+            <stop offset="1" stopColor="#E3F2FD" stopOpacity="0.45" />
+          </linearGradient>
+          <linearGradient id="wave-sky" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#E3F2FD" />
+            <stop offset="1" stopColor="#90CAF9" />
+          </linearGradient>
+          <linearGradient id="wave-blue" x1="0" x2="1" y1="0" y2="0.8">
+            <stop stopColor="#90CAF9" />
+            <stop offset="1" stopColor="#2196F3" />
+          </linearGradient>
+          <linearGradient id="wave-deep" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#2196F3" />
+            <stop offset="1" stopColor="#0D47A1" />
+          </linearGradient>
+          <linearGradient id="wave-dark-pale" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#35577F" />
+            <stop offset="1" stopColor="#1B365A" />
+          </linearGradient>
+          <linearGradient id="wave-dark-sky" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#315B8D" />
+            <stop offset="1" stopColor="#193C68" />
+          </linearGradient>
+          <linearGradient id="wave-dark-blue" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#244E80" />
+            <stop offset="1" stopColor="#142F54" />
+          </linearGradient>
+          <linearGradient id="wave-dark-deep" x1="0" x2="1" y1="0" y2="1">
+            <stop stopColor="#1C3C66" />
+            <stop offset="1" stopColor="#10213D" />
+          </linearGradient>
+        </defs>
 
-      {/* Tiny drifting lights */}
-      {[
-        { left: "12%", top: "58%", delay: 0, duration: 6 },
-        { left: "26%", top: "35%", delay: 1.2, duration: 7 },
-        { left: "43%", top: "68%", delay: 0.6, duration: 5 },
-        { left: "62%", top: "43%", delay: 2, duration: 8 },
-        { left: "78%", top: "62%", delay: 0.8, duration: 6 },
-        { left: "91%", top: "38%", delay: 1.6, duration: 7 },
-      ].map((particle, index) => (
-        <motion.span
-          key={index}
-          className="absolute h-1 w-1 rounded-full bg-[#60A5FA] shadow-[0_0_14px_4px_rgba(96,165,250,0.2)] dark:bg-[#B9D9FF] dark:shadow-[0_0_16px_5px_rgba(96,165,250,0.35)]"
-          style={{ left: particle.left, top: particle.top }}
-          animate={
-            reduceMotion
-              ? { opacity: 0.5 }
-              : {
-                  opacity: [0.15, 0.8, 0.25],
-                  y: [0, -13, 4],
-                  scale: [0.8, 1.4, 0.9],
-                }
-          }
-          transition={{
-            duration: particle.duration,
-            delay: particle.delay,
-            repeat: Infinity,
-            repeatType: "mirror",
-            ease: "easeInOut",
-          }}
-        />
-      ))}
+        {waveLayers.map((layer, index) => (
+          <WavePath
+            key={`light-${index}`}
+            layer={layer}
+            pointerX={pointerX}
+            pointerY={pointerY}
+            pointerPresence={pointerPresence}
+            reduceMotion={Boolean(reduceMotion)}
+          />
+        ))}
+        {waveLayers.map((layer, index) => (
+          <WavePath
+            key={`dark-${index}`}
+            layer={layer}
+            pointerX={pointerX}
+            pointerY={pointerY}
+            pointerPresence={pointerPresence}
+            reduceMotion={Boolean(reduceMotion)}
+            dark
+          />
+        ))}
+      </svg>
+
+      {/* Ambient mist drifts independently of the cursor-reactive filled waves. */}
+      <motion.div
+        className="absolute -inset-x-[12%] bottom-[4%] h-[38%] rounded-[50%] bg-[#B9DDFB]/30 blur-[70px] dark:bg-[#244B83]/20"
+        animate={reduceMotion ? {} : { x: [0, 28, -12, 0], y: [0, -12, 5, 0] }}
+        transition={{ duration: 26, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+      />
     </div>
   );
 }
