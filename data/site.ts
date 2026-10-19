@@ -27,7 +27,7 @@ export const siteConfig: SiteConfig = {
   email: "shivanginigupta573@gmail.com",
   socials: {
     github: "https://github.com/shivanginigupta573-dev",
-    linkedin: "https://www.linkedin.com/in/shivangini-gupta-nitd/?isSelfProfile=true",
+    linkedin: "https://www.linkedin.com/in/shivangini-gupta-nitd/",
     ...(publicEnv("NEXT_PUBLIC_SITE_TWITTER")
       ? { twitter: publicEnv("NEXT_PUBLIC_SITE_TWITTER") }
       : {}),
