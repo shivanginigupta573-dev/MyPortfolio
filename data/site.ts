@@ -26,8 +26,8 @@ export const siteConfig: SiteConfig = {
   location: publicEnv("NEXT_PUBLIC_SITE_LOCATION", "India"),
   email: publicEnv("NEXT_PUBLIC_SITE_EMAIL", "you@example.com"),
   socials: {
-    github: publicEnv("NEXT_PUBLIC_SITE_GITHUB", "https://github.com/yourusername"),
-    linkedin: publicEnv("NEXT_PUBLIC_SITE_LINKEDIN", "https://linkedin.com/in/yourusername"),
+    github: publicEnv("NEXT_PUBLIC_SITE_GITHUB", "https://github.com/shivanginigupta573-dev"),
+    linkedin: publicEnv("NEXT_PUBLIC_SITE_LINKEDIN", "https://www.linkedin.com/in/shivangini-gupta-nitd/?isSelfProfile=true"),
     ...(publicEnv("NEXT_PUBLIC_SITE_TWITTER")
       ? { twitter: publicEnv("NEXT_PUBLIC_SITE_TWITTER") }
       : {}),

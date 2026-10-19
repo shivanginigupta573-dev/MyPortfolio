@@ -1,418 +1,446 @@
+
 "use client";
 
-import { useState, useEffect, useRef, type PointerEvent } from "react";
-import { motion, useSpring, useReducedMotion } from "motion/react";
-import dynamic from "next/dynamic";
+import { useState } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useSpring,
+} from "motion/react";
 
-/* ---------- optional Lottie support ---------- */
-const LottiePlayer = dynamic<any>(
-  () => import("lottie-react").then((mod) => mod.Lottie),
-  { ssr: false }
-);
-
-/* Try to load a local Lottie JSON from public/animations/coder-girl.json.
-   If the file doesn't exist the fetch 404s and we fall back to the SVG. */
-function useLottieData() {
-  const [data, setData] = useState<object | null>(null);
-  const tried = useRef(false);
-
-  useEffect(() => {
-    if (tried.current) return;
-    tried.current = true;
-    fetch("/animations/coder-girl.json")
-      .then((r) => {
-        if (!r.ok) throw new Error("not found");
-        return r.json();
-      })
-      .then(setData)
-      .catch(() => {
-        /* no Lottie file — use SVG fallback */
-      });
-  }, []);
-
-  return data;
-}
-
-/* ---------- main component ---------- */
 export function PersonalWorkspaceIllustration() {
-  const [mounted, setMounted] = useState(false);
   const reduceMotion = useReducedMotion();
-  const lottieData = useLottieData();
+  const [pointerInside, setPointerInside] = useState(false);
 
-  const pointerX = useSpring(0, { stiffness: 90, damping: 20 });
-  const pointerY = useSpring(0, { stiffness: 90, damping: 20 });
+  const pointerX = useSpring(0, { stiffness: 65, damping: 22 });
+  const pointerY = useSpring(0, { stiffness: 65, damping: 22 });
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (reduceMotion || event.pointerType === "touch") return;
 
-  function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
-    if (!mounted || e.pointerType === "touch") return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    pointerX.set(((e.clientX - rect.left) / rect.width - 0.5) * 10);
-    pointerY.set(((e.clientY - rect.top) / rect.height - 0.5) * 8);
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+
+    pointerX.set(x * 9);
+    pointerY.set(y * 6);
+    setPointerInside(true);
   }
 
-  function handlePointerLeave() {
+  function resetPointer() {
     pointerX.set(0);
     pointerY.set(0);
+    setPointerInside(false);
   }
-
-  const drift = (dur: number, delay = 0) =>
-    reduceMotion
-      ? { duration: 0 }
-      : {
-          duration: dur,
-          delay,
-          repeat: Infinity,
-          repeatType: "mirror" as const,
-          ease: "easeInOut" as const,
-        };
 
   return (
     <div
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      className="relative mx-auto w-full max-w-[620px] select-none"
-      aria-label="Illustration of a young woman working on a laptop"
       role="img"
+      aria-label="Storybook illustration of a student working at her laptop"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetPointer}
+      className="relative mx-auto w-full max-w-[620px] select-none"
     >
-      {/* ── Atmospheric glow behind character ── */}
-      <div className="pointer-events-none absolute inset-[5%] rounded-full bg-[#B5D8FE]/40 blur-[80px] transition-all duration-700 dark:bg-[#1E3A6E]/35" />
-
-      {/* ── Drifting cloud layers ── */}
-      <motion.div
-        className="pointer-events-none absolute -left-[15%] top-[10%] h-[45%] w-[60%] rounded-full bg-white/30 blur-[55px] dark:bg-[#2D4A7A]/20"
-        animate={reduceMotion ? {} : { x: [0, 25, -10, 0], y: [0, -8, 4, 0] }}
-        transition={drift(22)}
-      />
-      <motion.div
-        className="pointer-events-none absolute -right-[10%] top-[20%] h-[40%] w-[55%] rounded-full bg-[#DDE9FA]/40 blur-[60px] dark:bg-[#1A3358]/25"
-        animate={reduceMotion ? {} : { x: [0, -20, 15, 0], y: [0, 6, -5, 0] }}
-        transition={drift(26, 1.5)}
+      {/* Soft atmosphere behind the illustration */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-[8%] rounded-full
+          bg-[#B9DDFB]/55 blur-[65px]
+          dark:bg-[#244B83]/35 dark:blur-[80px]"
       />
 
-      {/* ── Dark-mode stars ── */}
-      {mounted &&
-        [
-          { l: "8%", t: "12%", d: 4, del: 0 },
-          { l: "88%", t: "8%", d: 5, del: 1 },
-          { l: "75%", t: "28%", d: 3.5, del: 0.5 },
-          { l: "15%", t: "38%", d: 6, del: 2 },
-          { l: "92%", t: "42%", d: 4.5, del: 1.2 },
-        ].map((s, i) => (
-          <motion.span
-            key={i}
-            className="pointer-events-none absolute hidden h-1 w-1 rounded-full bg-[#BAE6FD] shadow-[0_0_6px_2px_rgba(186,230,253,0.4)] dark:block"
-            style={{ left: s.l, top: s.t }}
-            animate={
-              reduceMotion
-                ? { opacity: 0.5 }
-                : { opacity: [0.2, 0.9, 0.2], scale: [0.8, 1.3, 0.8] }
-            }
-            transition={drift(s.d, s.del)}
-          />
-        ))}
-
-      {/* ── Main floating character ── */}
       <motion.div
-        className="relative"
-        style={{ x: pointerX, y: pointerY, transformPerspective: 900 }}
-        animate={mounted && !reduceMotion ? { y: [0, -6, 0] } : {}}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[14%] top-[14%]
+          h-24 w-40 rounded-full bg-white/60 blur-3xl
+          dark:bg-[#8DBDFF]/10"
+        animate={
+          reduceMotion
+            ? {}
+            : { x: [0, 14, -6, 0], y: [0, -5, 4, 0] }
+        }
         transition={{
-          duration: 6,
+          duration: 19,
           repeat: Infinity,
           ease: "easeInOut",
         }}
+      />
+
+      <motion.svg
+        viewBox="0 0 640 560"
+        className="relative z-10 h-auto w-full overflow-visible"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        style={{
+          x: pointerX,
+          y: pointerY,
+        }}
       >
-        {lottieData ? (
-          /* ── Lottie animation (if coder-girl.json exists) ── */
-          <LottiePlayer
-            animationData={lottieData}
-            loop
-            autoplay
-            className="relative z-10 h-auto w-full"
+        <defs>
+          <linearGradient id="girl-hair" x1="245" y1="55" x2="405" y2="380">
+            <stop stopColor="#293044" />
+            <stop offset=".52" stopColor="#171D31" />
+            <stop offset="1" stopColor="#101625" />
+          </linearGradient>
+
+          <linearGradient id="girl-skin" x1="285" y1="100" x2="360" y2="250">
+            <stop stopColor="#FFE5D1" />
+            <stop offset="1" stopColor="#EAB99C" />
+          </linearGradient>
+
+          <linearGradient id="girl-sweater" x1="230" y1="240" x2="420" y2="460">
+            <stop stopColor="#D9E9FB" />
+            <stop offset=".55" stopColor="#ABCDEC" />
+            <stop offset="1" stopColor="#82B3E1" />
+          </linearGradient>
+
+          <linearGradient id="girl-laptop" x1="170" y1="340" x2="470" y2="435">
+            <stop stopColor="#F8FBFF" />
+            <stop offset="1" stopColor="#B5CCE4" />
+          </linearGradient>
+
+          <radialGradient id="girl-cheek">
+            <stop stopColor="#E99593" stopOpacity=".42" />
+            <stop offset="1" stopColor="#E99593" stopOpacity="0" />
+          </radialGradient>
+
+          <linearGradient id="girl-screen" x1="205" y1="310" x2="425" y2="355">
+            <stop stopColor="#EAF6FF" />
+            <stop offset="1" stopColor="#D0E8FC" />
+          </linearGradient>
+        </defs>
+
+        {/* Grounding shadow */}
+        <ellipse
+          cx="320"
+          cy="505"
+          rx="190"
+          ry="19"
+          fill="#6199D1"
+          fillOpacity=".12"
+          className="dark:fill-[#020817] dark:fill-opacity-50"
+        />
+
+        {/* Chair: understated, behind the character */}
+        <path
+          d="M220 330 Q220 260 275 245 Q320 230 365 245 Q420 260 420 330 L405 414 L235 414 Z"
+          fill="#A9C2DE"
+          fillOpacity=".48"
+          className="dark:fill-[#203651] dark:fill-opacity-70"
+        />
+        <path
+          d="M248 390 L242 470 M392 390 L398 470"
+          stroke="#90ACC9"
+          strokeWidth="9"
+          strokeLinecap="round"
+          className="dark:stroke-[#294563]"
+        />
+
+        {/* Back hair */}
+        <motion.g
+          animate={
+            reduceMotion ? {} : { rotate: [0, 0.8, 0, -0.5, 0] }
+          }
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          style={{ transformOrigin: "320px 175px" }}
+        >
+          <path
+            d="M252 145 Q228 93 275 61 Q319 31 363 63 Q410 96 391 163
+              L407 297 Q408 350 382 382 L356 365
+              L365 206 L278 211 L284 367 L254 382
+              Q228 348 234 292 Z"
+            fill="url(#girl-hair)"
           />
-        ) : (
-          /* ── Beautiful editorial SVG illustration fallback ── */
-          <SVGIllustration mounted={mounted} reduceMotion={!!reduceMotion} />
-        )}
-      </motion.div>
+          <path
+            d="M255 175 Q240 239 256 319 Q263 348 277 361"
+            stroke="#697895"
+            strokeOpacity=".4"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M384 171 Q400 245 382 320 Q378 344 365 358"
+            stroke="#697895"
+            strokeOpacity=".3"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </motion.g>
 
-      {/* ── Laptop glow effect ── */}
-      <div className="pointer-events-none absolute bottom-[18%] left-1/2 h-[30px] w-[45%] -translate-x-1/2 rounded-full bg-[#60A5FA]/15 blur-[25px] transition-colors duration-700 dark:bg-[#38BDF8]/20" />
+        {/* Oversized sweater */}
+        <path
+          d="M270 231 Q292 218 320 219 Q350 218 371 232
+            Q410 250 429 297 L454 389
+            Q455 405 436 412 Q382 430 320 427
+            Q254 430 205 411 Q188 404 191 389
+            L213 298 Q231 252 270 231 Z"
+          fill="url(#girl-sweater)"
+        />
+
+        {/* Collar and soft fabric folds */}
+        <path
+          d="M291 227 Q300 252 320 253 Q340 252 350 227"
+          stroke="#8BB4DB"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <path
+          d="M244 303 Q264 315 281 314 M359 314 Q382 315 397 301"
+          stroke="#739EC8"
+          strokeOpacity=".38"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M260 352 Q278 359 292 356 M348 356 Q364 359 380 352"
+          stroke="#739EC8"
+          strokeOpacity=".25"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+
+        {/* Neck */}
+        <path
+          d="M297 197 L294 232 Q320 251 346 232 L343 197 Z"
+          fill="url(#girl-skin)"
+        />
+
+        {/* Face */}
+        <path
+          d="M267 142 Q267 93 320 91 Q373 93 373 142
+            L367 179 Q359 217 320 226
+            Q281 217 273 179 Z"
+          fill="url(#girl-skin)"
+        />
+
+        {/* Ears */}
+        <ellipse cx="269" cy="158" rx="8" ry="13" fill="#EAB99C" />
+        <ellipse cx="371" cy="158" rx="8" ry="13" fill="#EAB99C" />
+
+        {/* Cheeks */}
+        <ellipse cx="287" cy="171" rx="17" ry="11" fill="url(#girl-cheek)" />
+        <ellipse cx="353" cy="171" rx="17" ry="11" fill="url(#girl-cheek)" />
+
+        {/* Brows */}
+        <path
+          d="M283 133 Q296 126 307 133 M333 133 Q345 126 358 133"
+          stroke="#48352F"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+
+        {/* Eyes and a gentle blink */}
+        <g>
+          <path d="M282 145 Q295 155 308 145" stroke="#48352F" strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M332 145 Q345 155 358 145" stroke="#48352F" strokeWidth="2.4" strokeLinecap="round" />
+          <motion.g
+            animate={reduceMotion ? {} : { scaleY: [1, 1, 0.08, 1, 1] }}
+            transition={{
+              duration: 5.5,
+              times: [0, 0.78, 0.82, 0.86, 1],
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            style={{ transformOrigin: "320px 147px" }}
+          >
+            <ellipse cx="295" cy="146" rx="5.5" ry="7" fill="#382820" />
+            <ellipse cx="345" cy="146" rx="5.5" ry="7" fill="#382820" />
+            <circle cx="297" cy="144" r="1.8" fill="white" />
+            <circle cx="347" cy="144" r="1.8" fill="white" />
+          </motion.g>
+        </g>
+
+        {/* Nose and smile */}
+        <path
+          d="M316 158 Q319 164 324 161"
+          stroke="#C98F78"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M304 180 Q320 192 336 180"
+          stroke="#B96F71"
+          strokeWidth="2.3"
+          strokeLinecap="round"
+        />
+
+        {/* Front hair and fringe */}
+        <path
+          d="M268 143 Q247 112 266 82 Q288 48 322 54
+            Q363 53 380 89 Q392 119 372 151
+            Q366 119 348 105 Q330 93 311 100
+            Q289 105 276 128 Z"
+          fill="url(#girl-hair)"
+        />
+        <path
+          d="M277 112 Q290 72 322 66"
+          stroke="#75829B"
+          strokeOpacity=".38"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+        <path
+          d="M309 99 Q319 118 314 133"
+          stroke="#242C41"
+          strokeWidth="9"
+          strokeLinecap="round"
+        />
+        <path
+          d="M341 99 Q354 116 356 131"
+          stroke="#242C41"
+          strokeWidth="9"
+          strokeLinecap="round"
+        />
+
+        {/* Small blue hair clip */}
+        <g transform="rotate(-17 359 83)">
+          <rect x="349" y="78" width="22" height="9" rx="4.5" fill="#90CAF9" />
+          <path d="M354 82 H366" stroke="#EAF6FF" strokeWidth="1.5" strokeLinecap="round" />
+        </g>
+
+        {/* Laptop screen */}
+        <path
+          d="M192 342 L208 299 Q211 293 219 293 H421
+            Q429 293 432 301 L448 342 Z"
+          fill="#83A9D0"
+          className="dark:fill-[#375778]"
+        />
+        <rect x="218" y="302" width="202" height="36" rx="3" fill="url(#girl-screen)" />
+
+        {/* Tiny code-like marks on the display */}
+        <g opacity=".8">
+          <rect x="229" y="309" width="43" height="3" rx="1.5" fill="#5D9BCE" />
+          <rect x="277" y="309" width="29" height="3" rx="1.5" fill="#A0C9EA" />
+          <rect x="229" y="317" width="28" height="3" rx="1.5" fill="#8BBCE4" />
+          <rect x="262" y="317" width="54" height="3" rx="1.5" fill="#5D9BCE" />
+          <rect x="229" y="325" width="67" height="3" rx="1.5" fill="#8BBCE4" />
+          <rect x="301" y="325" width="34" height="3" rx="1.5" fill="#5D9BCE" />
+        </g>
+
+        {/* Laptop base */}
+        <path
+          d="M184 342 H456 L471 365 Q473 371 465 372 H175
+            Q167 371 170 365 Z"
+          fill="url(#girl-laptop)"
+          stroke="#9DB9D7"
+          strokeWidth="1.2"
+        />
+        <path
+          d="M289 349 H351 Q354 349 354 352 V357 H286 V352 Q286 349 289 349 Z"
+          fill="#B1C9E1"
+        />
+
+        {/* Arms and sleeves rest naturally near the keyboard */}
+        <path
+          d="M221 282 Q202 297 208 323 L228 353
+            Q237 362 249 352 L263 337 L249 316 L252 291 Z"
+          fill="url(#girl-sweater)"
+        />
+        <path
+          d="M419 282 Q438 297 432 323 L412 353
+            Q403 362 391 352 L377 337 L391 316 L388 291 Z"
+          fill="url(#girl-sweater)"
+        />
+
+        {/* Wrists */}
+        <path
+          d="M229 340 Q237 334 247 343 L261 355 Q264 361 257 364
+            Q249 367 240 361 L227 352 Z"
+          fill="url(#girl-skin)"
+        />
+        <path
+          d="M411 340 Q403 334 393 343 L379 355 Q376 361 383 364
+            Q391 367 400 361 L413 352 Z"
+          fill="url(#girl-skin)"
+        />
+
+        {/* Hands: slow, small typing motion */}
+        <motion.g
+          animate={reduceMotion ? {} : { y: [0, -1.4, 0, -0.7, 0] }}
+          transition={{
+            duration: 2.8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          <path
+            d="M244 351 Q251 347 258 353 L273 361
+              Q278 365 274 369 Q271 372 265 369 L251 363
+              Q243 365 238 360 Q235 356 244 351 Z"
+            fill="url(#girl-skin)"
+          />
+          <path
+            d="M396 351 Q389 347 382 353 L367 361
+              Q362 365 366 369 Q369 372 375 369 L389 363
+              Q397 365 402 360 Q405 356 396 351 Z"
+            fill="url(#girl-skin)"
+          />
+        </motion.g>
+
+        {/* Ambient details: restrained, not a field of random sparkles */}
+        <motion.circle
+          cx="164"
+          cy="224"
+          r="3"
+          fill="#7DBAF0"
+          animate={
+            reduceMotion
+              ? {}
+              : { opacity: [0.25, 0.7, 0.25], y: [0, -5, 0] }
+          }
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.circle
+          cx="475"
+          cy="206"
+          r="2.5"
+          fill="#7DBAF0"
+          animate={
+            reduceMotion
+              ? {}
+              : { opacity: [0.2, 0.65, 0.2], y: [0, -7, 0] }
+          }
+          transition={{
+            duration: 7,
+            delay: 1.4,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Tiny glint beside the laptop */}
+        <path
+          d="M472 285 L475 292 L482 295 L475 298 L472 305 L469 298 L462 295 L469 292 Z"
+          fill="#90CAF9"
+          fillOpacity=".6"
+        />
+      </motion.svg>
+
+      {/* A soft pool of light beneath the laptop */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-[16%] left-1/2
+          h-8 w-[46%] -translate-x-1/2 rounded-full
+          bg-[#60A5FA]/20 blur-2xl
+          dark:bg-[#38BDF8]/20"
+      />
+
+      {/* Keep a subtle response to pointer movement */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[9%] top-[16%]
+          h-2 w-2 rounded-full bg-[#90CAF9]"
+        animate={
+          reduceMotion
+            ? { opacity: 0.45 }
+            : { opacity: pointerInside ? 0.8 : 0.3, scale: pointerInside ? 1.15 : 1 }
+        }
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      />
     </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   Editorial-style SVG: seated girl with laptop
-   Soft gradients · flowing dark hair · powder-blue sweater
-   Natural proportions · storybook aesthetic
-   ═════════════════════════════════════════════════════════════ */
-function SVGIllustration({
-  mounted,
-  reduceMotion,
-}: {
-  mounted: boolean;
-  reduceMotion: boolean;
-}) {
-  return (
-    <svg
-      viewBox="0 0 600 520"
-      className="relative z-10 h-auto w-full overflow-visible"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        {/* Hair gradient — rich dark tones */}
-        <linearGradient id="pw-hair" x1="260" y1="60" x2="380" y2="310" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#1A1A2E" />
-          <stop offset="0.5" stopColor="#16213E" />
-          <stop offset="1" stopColor="#0F0F1A" />
-        </linearGradient>
-
-        {/* Skin — warm natural */}
-        <linearGradient id="pw-skin" x1="300" y1="100" x2="340" y2="230" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#FCDEC0" />
-          <stop offset="1" stopColor="#F5C8A8" />
-        </linearGradient>
-
-        {/* Sweater — powder blue, soft */}
-        <linearGradient id="pw-sweater" x1="220" y1="230" x2="420" y2="420" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#CADDF5" className="dark:[stop-color:#4B7EB8]" />
-          <stop offset="0.5" stopColor="#A8C8EB" className="dark:[stop-color:#3A6496]" />
-          <stop offset="1" stopColor="#8BB8E0" className="dark:[stop-color:#2D5280]" />
-        </linearGradient>
-
-        {/* Laptop body */}
-        <linearGradient id="pw-laptop" x1="180" y1="330" x2="430" y2="410" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#E8EFF7" className="dark:[stop-color:#2A3F5F]" />
-          <stop offset="1" stopColor="#C5D5E8" className="dark:[stop-color:#1C2D45]" />
-        </linearGradient>
-
-        {/* Laptop screen glow */}
-        <radialGradient id="pw-screen-glow" cx="0.5" cy="0.5" r="0.5">
-          <stop stopColor="#E8F4FD" className="dark:[stop-color:#1A2E4A]" />
-          <stop offset="1" stopColor="#D0E8FB" className="dark:[stop-color:#15253D]" />
-        </radialGradient>
-
-        {/* Cheek blush */}
-        <radialGradient id="pw-blush">
-          <stop stopColor="#F5B8A8" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#F5B8A8" stopOpacity="0" />
-        </radialGradient>
-
-        {/* Hair shine highlight */}
-        <linearGradient id="pw-hair-shine" x1="280" y1="80" x2="340" y2="140" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#3A4A6E" stopOpacity="0.6" />
-          <stop offset="1" stopColor="#1A1A2E" stopOpacity="0" />
-        </linearGradient>
-
-        {/* Chair */}
-        <linearGradient id="pw-chair" x1="200" y1="350" x2="420" y2="500" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#D4DFE8" className="dark:[stop-color:#1E2D42]" />
-          <stop offset="1" stopColor="#B8C8D8" className="dark:[stop-color:#162235]" />
-        </linearGradient>
-      </defs>
-
-      {/* ── Ground shadow ── */}
-      <ellipse cx="310" cy="490" rx="210" ry="18" fill="#90CAF9" fillOpacity="0.12" className="dark:fill-[#0D1B30] dark:fill-opacity-60" />
-
-      {/* ── Chair / seat ── */}
-      <path d="M200 380 Q195 430 205 470 L220 470 Q218 440 220 410 Z" fill="url(#pw-chair)" />
-      <path d="M420 380 Q425 430 415 470 L400 470 Q402 440 400 410 Z" fill="url(#pw-chair)" />
-      <path d="M190 370 Q195 360 310 355 Q425 360 430 370 Q435 385 430 395 Q425 405 310 410 Q195 405 190 395 Z"
-        fill="url(#pw-chair)" />
-      {/* Chair back */}
-      <path d="M195 370 Q200 280 220 250 Q260 225 310 220 Q360 225 400 250 Q420 280 425 370"
-        fill="url(#pw-chair)" fillOpacity="0.7" />
-
-      {/* ── Back hair flowing down ── */}
-      <path d="M250 120 C220 140 200 200 210 280 C215 320 225 350 240 380 Q260 400 280 390 C270 350 258 300 255 250 C253 210 260 160 280 130 Z"
-        fill="url(#pw-hair)" opacity="0.85" />
-      <path d="M370 120 C400 150 420 210 415 280 C412 320 405 360 395 390 Q380 410 365 395 C372 355 380 310 383 260 C385 210 375 155 355 125 Z"
-        fill="url(#pw-hair)" opacity="0.85" />
-
-      {/* ── Sweater / torso ── */}
-      <path d="M230 240 Q260 220 310 215 Q360 220 390 240 Q420 270 430 320 Q435 370 425 400 Q400 415 310 415 Q220 415 195 400 Q185 370 190 320 Q200 270 230 240Z"
-        fill="url(#pw-sweater)" />
-      {/* Sweater neckline */}
-      <path d="M275 230 Q295 240 310 242 Q325 240 345 230" stroke="#9BB8D8" strokeWidth="2" strokeLinecap="round" fill="none" className="dark:stroke-[#6B94C0]" />
-      {/* Sweater fold lines */}
-      <path d="M250 300 Q280 310 310 308 Q340 310 370 300" stroke="#9BB8D8" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.4" className="dark:stroke-[#6B94C0]" />
-      <path d="M240 340 Q275 348 310 347 Q345 348 380 340" stroke="#9BB8D8" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.3" className="dark:stroke-[#6B94C0]" />
-
-      {/* ── Neck ── */}
-      <path d="M295 200 L290 235 Q310 245 330 235 L325 200Z" fill="url(#pw-skin)" />
-
-      {/* ── Face — soft oval ── */}
-      <ellipse cx="310" cy="148" rx="52" ry="62" fill="url(#pw-skin)" />
-
-      {/* ── Ears ── */}
-      <ellipse cx="258" cy="155" rx="8" ry="12" fill="#F5C8A8" />
-      <ellipse cx="362" cy="155" rx="8" ry="12" fill="#F5C8A8" />
-
-      {/* ── Cheek blush ── */}
-      <ellipse cx="280" cy="168" rx="14" ry="9" fill="url(#pw-blush)" />
-      <ellipse cx="340" cy="168" rx="14" ry="9" fill="url(#pw-blush)" />
-
-      {/* ── Eyes — expressive, softly drawn ── */}
-      <g className="dark:opacity-90">
-        {/* Left eye */}
-        <ellipse cx="290" cy="145" rx="8" ry="9" fill="white" />
-        <motion.ellipse
-          cx="291" cy="146" rx="4.5" ry="5"
-          fill="#2C1810"
-          animate={mounted && !reduceMotion ? { scaleY: [1, 0.08, 1] } : {}}
-          transition={{ duration: 0.15, delay: 3, repeat: Infinity, repeatDelay: 4 }}
-        />
-        <circle cx="293" cy="144" r="1.5" fill="white" />
-        {/* Left upper eyelid line */}
-        <path d="M279 138 Q290 132 301 138" stroke="#1A1A2E" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-        {/* Left eyelash accents */}
-        <path d="M280 138 L278 135" stroke="#1A1A2E" strokeWidth="1" strokeLinecap="round" />
-        <path d="M299 138 L302 135" stroke="#1A1A2E" strokeWidth="1" strokeLinecap="round" />
-
-        {/* Right eye */}
-        <ellipse cx="330" cy="145" rx="8" ry="9" fill="white" />
-        <motion.ellipse
-          cx="331" cy="146" rx="4.5" ry="5"
-          fill="#2C1810"
-          animate={mounted && !reduceMotion ? { scaleY: [1, 0.08, 1] } : {}}
-          transition={{ duration: 0.15, delay: 3, repeat: Infinity, repeatDelay: 4 }}
-        />
-        <circle cx="333" cy="144" r="1.5" fill="white" />
-        {/* Right upper eyelid line */}
-        <path d="M319 138 Q330 132 341 138" stroke="#1A1A2E" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-        <path d="M320 138 L318 135" stroke="#1A1A2E" strokeWidth="1" strokeLinecap="round" />
-        <path d="M340 138 L343 135" stroke="#1A1A2E" strokeWidth="1" strokeLinecap="round" />
-      </g>
-
-      {/* ── Eyebrows — soft arcs ── */}
-      <path d="M278 130 Q290 124 303 130" stroke="#2A1F1A" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6" />
-      <path d="M317 130 Q330 124 343 130" stroke="#2A1F1A" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6" />
-
-      {/* ── Nose — subtle ── */}
-      <path d="M308 158 Q310 164 314 162" stroke="#E0A88A" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-
-      {/* ── Mouth — gentle smile ── */}
-      <path d="M298 178 Q310 186 322 178" stroke="#D4847A" strokeWidth="2" strokeLinecap="round" fill="none" />
-      {/* Upper lip hint */}
-      <path d="M303 176 Q310 172 317 176" stroke="#E09890" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-
-      {/* ── Hair — top, flowing, voluminous ── */}
-      <path d="M255 130 C245 90 270 55 310 50 C350 55 375 90 365 130 Q370 95 355 72 C335 55 285 55 265 72 Q250 95 255 130Z"
-        fill="url(#pw-hair)" />
-      {/* Hair volume left */}
-      <path d="M255 130 C240 110 235 140 240 165 C243 180 248 170 255 155 Q260 140 255 130Z"
-        fill="url(#pw-hair)" />
-      {/* Hair volume right */}
-      <path d="M365 130 C380 110 385 140 380 165 C377 180 372 170 365 155 Q360 140 365 130Z"
-        fill="url(#pw-hair)" />
-      {/* Bangs / fringe */}
-      <path d="M265 115 C270 85 295 65 310 63 C325 65 350 85 355 115 Q345 90 310 80 Q275 90 265 115Z"
-        fill="url(#pw-hair)" />
-      {/* Hair shine */}
-      <path d="M285 75 Q300 68 315 75 Q305 85 285 75Z" fill="url(#pw-hair-shine)" />
-
-      {/* ── Hair flowing over shoulders ── */}
-      {/* Left side flowing hair */}
-      <path d="M248 165 C240 200 235 260 242 320 Q245 340 250 350 Q255 345 253 320 C250 270 252 210 258 170Z"
-        fill="url(#pw-hair)" opacity="0.9" />
-      {/* Right side flowing hair */}
-      <path d="M372 165 C380 200 385 260 378 320 Q375 340 370 350 Q365 345 367 320 C370 270 368 210 362 170Z"
-        fill="url(#pw-hair)" opacity="0.9" />
-
-      {/* ── Arms / Hands on laptop ── */}
-      {/* Left arm - sleeve */}
-      <path d="M220 290 Q200 310 195 340 Q192 360 200 375 L225 370 Q220 350 225 330 Q230 310 240 295Z"
-        fill="url(#pw-sweater)" />
-      {/* Left hand */}
-      <motion.g
-        animate={mounted && !reduceMotion ? { y: [0, -2, 0] } : {}}
-        transition={{ duration: 0.3, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M200 370 Q195 380 210 385 Q225 388 235 383 Q240 378 235 372 Q225 368 210 368Z"
-          fill="url(#pw-skin)" />
-      </motion.g>
-
-      {/* Right arm - sleeve */}
-      <path d="M400 290 Q420 310 425 340 Q428 360 420 375 L395 370 Q400 350 395 330 Q390 310 380 295Z"
-        fill="url(#pw-sweater)" />
-      {/* Right hand */}
-      <motion.g
-        animate={mounted && !reduceMotion ? { y: [-2, 0, -2] } : {}}
-        transition={{ duration: 0.3, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M420 370 Q425 380 410 385 Q395 388 385 383 Q380 378 385 372 Q395 368 410 368Z"
-          fill="url(#pw-skin)" />
-      </motion.g>
-
-      {/* ── Laptop ── */}
-      {/* Screen back */}
-      <path d="M175 355 L190 300 Q195 290 205 290 L415 290 Q425 290 428 300 L445 355Z"
-        fill="#8FB8DE" className="dark:fill-[#3A5A7E]" />
-      {/* Screen face */}
-      <rect x="195" y="298" width="230" height="50" rx="3" fill="url(#pw-screen-glow)" />
-
-      {/* Code lines on screen */}
-      <rect x="205" y="306" width="65" height="4" rx="2" fill="#7BAED4" className="dark:fill-[#4B8CC0]" opacity="0.8" />
-      <rect x="278" y="306" width="40" height="4" rx="2" fill="#5D9BCE" className="dark:fill-[#3B7AB0]" opacity="0.6" />
-      <rect x="205" y="316" width="45" height="3.5" rx="1.5" fill="#90C4E8" className="dark:fill-[#5B9ED4]" opacity="0.5" />
-      <rect x="258" y="316" width="80" height="3.5" rx="1.5" fill="#6AADDA" className="dark:fill-[#4B8CC0]" opacity="0.6" />
-      <rect x="205" y="326" width="100" height="3.5" rx="1.5" fill="#5D9BCE" className="dark:fill-[#3B7AB0]" opacity="0.5" />
-      <rect x="312" y="326" width="35" height="3.5" rx="1.5" fill="#7BAED4" className="dark:fill-[#5B9ED4]" opacity="0.4" />
-      <rect x="205" y="336" width="55" height="3.5" rx="1.5" fill="#90C4E8" className="dark:fill-[#6AADDA]" opacity="0.5" />
-
-      {/* Laptop screen glow reflection */}
-      <motion.rect
-        x="195" y="298" width="230" height="50" rx="3"
-        fill="#60A5FA" fillOpacity="0"
-        animate={mounted && !reduceMotion ? { fillOpacity: [0, 0.06, 0] } : {}}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* Keyboard base */}
-      <path d="M170 355 L450 355 L465 378 Q468 382 462 382 L157 382 Q151 382 155 378 Z"
-        fill="#D0DEE8" className="dark:fill-[#233A52]" />
-      {/* Keyboard trackpad hint */}
-      <rect x="285" y="362" width="50" height="12" rx="3" fill="#BDD0E0" className="dark:fill-[#2A4560]" />
-      {/* Keyboard top edge highlight */}
-      <line x1="175" y1="355" x2="445" y2="355" stroke="white" strokeWidth="1.5" strokeOpacity="0.5" className="dark:stroke-[#4B6A8A]" />
-
-      {/* ── Small decorative elements ── */}
-      {/* Hair clip / accessory */}
-      <circle cx="348" cy="78" r="5" fill="#90CAF9" className="dark:fill-[#38BDF8]" />
-      <path d="M348 75 L349 77 L352 78 L349 79 L348 81 L347 79 L344 78 L347 77Z" fill="white" fillOpacity="0.9" />
-
-      {/* Floating sparkle accents */}
-      <motion.g
-        animate={mounted && !reduceMotion ? { opacity: [0.3, 0.8, 0.3] } : { opacity: 0.5 }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M140 200 L143 208 L151 211 L143 214 L140 222 L137 214 L129 211 L137 208Z"
-          fill="#90CAF9" fillOpacity="0.7" className="dark:fill-[#38BDF8]" />
-      </motion.g>
-      <motion.g
-        animate={mounted && !reduceMotion ? { opacity: [0.2, 0.7, 0.2] } : { opacity: 0.4 }}
-        transition={{ duration: 5, delay: 1.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <path d="M470 150 L472 156 L478 158 L472 160 L470 166 L468 160 L462 158 L468 156Z"
-          fill="#90CAF9" fillOpacity="0.6" className="dark:fill-[#7DD3FC]" />
-      </motion.g>
-      <motion.circle
-        cx="160" cy="310" r="2.5"
-        fill="#60A5FA" className="dark:fill-[#93C5FD]"
-        animate={mounted && !reduceMotion ? { opacity: [0.3, 0.9, 0.3], scale: [0.8, 1.3, 0.8] } : {}}
-        transition={{ duration: 3.5, delay: 0.8, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.circle
-        cx="460" cy="260" r="2"
-        fill="#90CAF9" className="dark:fill-[#BAE6FD]"
-        animate={mounted && !reduceMotion ? { opacity: [0.2, 0.8, 0.2], scale: [1, 1.5, 1] } : {}}
-        transition={{ duration: 4, delay: 2, repeat: Infinity, ease: "easeInOut" }}
-      />
-    </svg>
   );
 }
