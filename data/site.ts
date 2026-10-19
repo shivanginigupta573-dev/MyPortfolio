@@ -24,10 +24,10 @@ export const siteConfig: SiteConfig = {
     "I like understanding how things work before I improve them."
   ),
   location: publicEnv("NEXT_PUBLIC_SITE_LOCATION", "India"),
-  email: publicEnv("NEXT_PUBLIC_SITE_EMAIL", "you@example.com"),
+  email: "shivanginigupta573@gmail.com",
   socials: {
-    github: publicEnv("NEXT_PUBLIC_SITE_GITHUB", "https://github.com/shivanginigupta573-dev"),
-    linkedin: publicEnv("NEXT_PUBLIC_SITE_LINKEDIN", "https://www.linkedin.com/in/shivangini-gupta-nitd/?isSelfProfile=true"),
+    github: "https://github.com/shivanginigupta573-dev",
+    linkedin: "https://www.linkedin.com/in/shivangini-gupta-nitd/",
     ...(publicEnv("NEXT_PUBLIC_SITE_TWITTER")
       ? { twitter: publicEnv("NEXT_PUBLIC_SITE_TWITTER") }
       : {}),

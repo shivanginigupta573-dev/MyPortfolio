@@ -1,22 +1,54 @@
 
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
 import { AnimatedBlueWaves } from "@/components/illustrations/AnimatedBlueWaves";
 import { PersonalWorkspaceIllustration } from "@/components/illustrations/PersonalWorkspaceIllustration";
 
 export function Hero() {
   const reduceMotion = useReducedMotion();
+  const targetX = useMotionValue(0.5);
+  const targetY = useMotionValue(0.5);
+  const targetPresence = useMotionValue(0);
+  const pointerX = useSpring(targetX, { stiffness: 55, damping: 24, mass: 0.8 });
+  const pointerY = useSpring(targetY, { stiffness: 55, damping: 24, mass: 0.8 });
+  const pointerPresence = useSpring(targetPresence, {
+    stiffness: 45,
+    damping: 22,
+    mass: 0.9,
+  });
+
+  function handlePointerMove(event: React.PointerEvent<HTMLElement>) {
+    if (event.pointerType === "touch" || reduceMotion) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    targetX.set(Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)));
+    targetY.set(Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)));
+    targetPresence.set(1);
+  }
+
+  function handlePointerLeave() {
+    targetX.set(0.5);
+    targetY.set(0.5);
+    targetPresence.set(0);
+  }
 
   return (
-    <section className="relative isolate flex min-h-[760px] items-center overflow-hidden bg-[#FAFCFE] transition-colors duration-700 dark:bg-[#0B1220] sm:min-h-[820px] lg:min-h-[calc(100svh-76px)]">
+    <section
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      className="relative isolate flex min-h-[760px] items-center overflow-hidden bg-[#FAFCFE] transition-colors duration-700 dark:bg-[#0B1220] sm:min-h-[820px] lg:min-h-[calc(100svh-76px)]"
+    >
       {/* Background atmosphere */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_30%_35%,rgba(144,202,249,0.28),transparent_48%),radial-gradient(ellipse_at_78%_60%,rgba(191,219,254,0.24),transparent_38%)] dark:bg-[radial-gradient(ellipse_at_70%_35%,rgba(59,130,246,0.16),transparent_45%),radial-gradient(ellipse_at_30%_65%,rgba(30,64,120,0.22),transparent_45%)]"
       />
 
-      <AnimatedBlueWaves />
+      <AnimatedBlueWaves
+        pointerX={pointerX}
+        pointerY={pointerY}
+        pointerPresence={pointerPresence}
+      />
 
       <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-2 px-6 pb-56 pt-16 sm:px-10 sm:pb-64 lg:grid-cols-[1.05fr_0.95fr] lg:gap-0 lg:px-12 lg:pb-40 lg:pt-12">
         <motion.div
