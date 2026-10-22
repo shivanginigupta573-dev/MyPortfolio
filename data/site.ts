@@ -28,6 +28,7 @@ export const siteConfig: SiteConfig = {
   socials: {
     github: "https://github.com/shivanginigupta573-dev",
     linkedin: "https://www.linkedin.com/in/shivangini-gupta-nitd/",
+    leetcode: "https://leetcode.com/u/Shivangini/",
     ...(publicEnv("NEXT_PUBLIC_SITE_TWITTER")
       ? { twitter: publicEnv("NEXT_PUBLIC_SITE_TWITTER") }
       : {}),

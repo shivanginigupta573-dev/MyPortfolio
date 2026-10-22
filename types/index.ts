@@ -76,6 +76,9 @@ export interface SiteConfig {
   socials: {
     github: string;
     linkedin: string;
+    leetcode?: string;
+    codechef?: string;
+    codeforces?: string;
     twitter?: string;
   };
 }

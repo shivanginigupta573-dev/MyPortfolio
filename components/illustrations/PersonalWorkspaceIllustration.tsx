@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, useSpring } from "motion/react";
-import { Lottie } from "lottie-react";
+import { Lottie, type LottieHandle } from "lottie-react";
 import { Pause, Play } from "lucide-react";
 
 export function PersonalWorkspaceIllustration() {
@@ -10,7 +10,7 @@ export function PersonalWorkspaceIllustration() {
   const [mounted, setMounted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(!reduceMotion);
   const [pointerInside, setPointerInside] = useState(false);
-  const lottieRef = useRef<{ play: () => void; pause: () => void } | null>(null);
+  const lottieRef = useRef<LottieHandle>(null);
 
   const pointerX = useSpring(0, { stiffness: 65, damping: 22 });
   const pointerY = useSpring(0, { stiffness: 65, damping: 22 });
