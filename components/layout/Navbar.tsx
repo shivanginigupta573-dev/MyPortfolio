@@ -144,7 +144,7 @@ export function Navbar() {
             className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/70 to-transparent dark:via-blue-500/30"
           />
 
-          <div className="flex min-h-[72px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex min-h-[72px] items-center justify-between gap-1.5 px-4 py-3 md:gap-2 lg:gap-3 sm:px-6 lg:px-8">
 
             {/* Handwritten wordmark */}
             <Link
@@ -204,7 +204,7 @@ export function Navbar() {
                           setAboutOpen((open) => !open)
                         }
                         onFocus={() => {}}
-                        className={`group relative flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 lg:px-4 lg:text-sm ${
+                        className={`group relative flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 lg:px-4 lg:text-sm ${
                           isActive
                             ? "text-blue-700 dark:text-blue-300"
                             : "text-slate-600 hover:text-blue-700 dark:text-slate-300 dark:hover:text-blue-300"
@@ -323,7 +323,7 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     aria-current={isActive ? "page" : undefined}
-                    className={`group relative rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 lg:px-4 lg:text-sm ${
+                    className={`group relative rounded-full px-2.5 py-2 text-[13px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 lg:px-4 lg:text-sm ${
                       isActive
                         ? "text-blue-700 dark:text-blue-300"
                         : "text-slate-600 hover:text-blue-700 dark:text-slate-300 dark:hover:text-blue-300"
@@ -346,7 +346,7 @@ export function Navbar() {
             </nav>
 
             {/* Desktop actions */}
-            <div className="hidden shrink-0 items-center gap-3 md:flex">
+            <div className="hidden shrink-0 items-center gap-1 md:flex lg:gap-3">
               {themeToggle}
               {askButton}
             </div>

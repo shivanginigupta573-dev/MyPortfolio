@@ -12,7 +12,23 @@ export interface Project {
   liveUrl?: string;
   architectureHighlights?: string[];
   metrics?: string[];
-  category: "Full Stack" | "NLP / Data Science" | "Distributed Systems" | "Systems Engineering";
+  category:
+    | "Full Stack"
+    | "Productivity"
+    | "NLP / Data Science"
+    | "Distributed Systems"
+    | "Systems Engineering";
+}
+
+export interface OpenSourceRecord {
+  id: string;
+  reference: string;
+  title: string;
+  status: "Merged" | "Closed";
+  url: string;
+  detail: string;
+  relatedUrl?: string;
+  relatedReference?: string;
 }
 
 export interface OpenSourceContribution {
@@ -25,6 +41,7 @@ export interface OpenSourceContribution {
   impact: string;
   link?: string;
   year: string;
+  contributions?: OpenSourceRecord[];
 }
 
 export interface SkillCategory {
