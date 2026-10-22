@@ -123,7 +123,7 @@ function makeWavePath(
   presence: number
 ) {
   const points = Array.from({ length: 9 }, (_, index) => {
-    const x = (SVG_WIDTH / 8) * index;
+    const x = Math.round(((SVG_WIDTH / 8) * index) * 100) / 100;
     const broadWave =
       Math.sin((index / 8) * Math.PI * 2 + layer.phase) * layer.amplitude +
       Math.sin((index / 8) * Math.PI * 4 + layer.phase * 0.6) * 12;
@@ -133,15 +133,16 @@ function makeWavePath(
     const localRipple =
       Math.sin(distanceX * 2.2) * influence * layer.ripple * presence;
 
-    return { x, y: layer.baseline + broadWave + localRipple };
+    const y = Math.round((layer.baseline + broadWave + localRipple) * 100) / 100;
+    return { x, y };
   });
 
   let path = `M ${points[0].x} ${points[0].y}`;
   for (let index = 0; index < points.length - 1; index += 1) {
     const current = points[index];
     const next = points[index + 1];
-    const middleX = (current.x + next.x) / 2;
-    const middleY = (current.y + next.y) / 2;
+    const middleX = Math.round(((current.x + next.x) / 2) * 100) / 100;
+    const middleY = Math.round(((current.y + next.y) / 2) * 100) / 100;
     path += ` Q ${current.x} ${current.y} ${middleX} ${middleY}`;
   }
   const last = points[points.length - 1];
@@ -163,6 +164,9 @@ export function AnimatedBlueWaves({
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
       <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-[#C5E4FF]/60 via-[#EAF5FF]/30 to-transparent dark:from-[#071329] dark:via-[#10213D]/50 dark:to-transparent" />
 
+      {/* Atmospheric haze layer softly unifying waves with background */}
+      <div className="absolute inset-x-0 bottom-0 h-[72%] bg-gradient-to-t from-[#BBDDFB]/30 via-[#DCEEFE]/15 to-transparent dark:from-[#08152D]/50 dark:via-[#0F2242]/20 dark:to-transparent" />
+
       <motion.div
         className="absolute h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[420px] sm:w-[420px]"
         style={{
@@ -181,7 +185,8 @@ export function AnimatedBlueWaves({
       >
         <defs>
           <linearGradient id="wave-pale" x1="0" x2="0.85" y1="0" y2="1">
-            <stop stopColor="#FAFCFE" stopOpacity="0.9" />
+            <stop stopColor="#FAFCFE" stopOpacity="0.85" />
+            <stop offset="0.5" stopColor="#EEF7FE" stopOpacity="0.65" />
             <stop offset="1" stopColor="#E3F2FD" stopOpacity="0.45" />
           </linearGradient>
           <linearGradient id="wave-sky" x1="0" x2="1" y1="0" y2="1">
@@ -197,7 +202,8 @@ export function AnimatedBlueWaves({
             <stop offset="1" stopColor="#0D47A1" />
           </linearGradient>
           <linearGradient id="wave-dark-pale" x1="0" x2="1" y1="0" y2="1">
-            <stop stopColor="#35577F" />
+            <stop stopColor="#2E4D74" stopOpacity="0.85" />
+            <stop offset="0.5" stopColor="#244165" stopOpacity="0.75" />
             <stop offset="1" stopColor="#1B365A" />
           </linearGradient>
           <linearGradient id="wave-dark-sky" x1="0" x2="1" y1="0" y2="1">

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
@@ -50,14 +49,14 @@ export function Hero() {
         pointerPresence={pointerPresence}
       />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-2 px-6 pb-56 pt-16 sm:px-10 sm:pb-64 lg:grid-cols-[1.05fr_0.95fr] lg:gap-0 lg:px-12 lg:pb-40 lg:pt-12">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-2 px-6 pb-48 pt-16 sm:px-10 sm:pb-56 lg:grid-cols-[1.05fr_0.95fr] lg:gap-0 lg:px-12 lg:pb-36 lg:pt-12">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.85, ease: "easeOut" }}
           className="relative z-20 text-center lg:text-left"
         >
-          <h1 className="font-display text-[4.6rem] leading-[0.9] tracking-[-0.045em] text-[#0D47A1] dark:text-[#EAF2FF] sm:text-[6rem] md:text-[7rem] lg:text-[6.6rem] xl:text-[7.5rem]">
+          <h1 className="font-display text-[4.2rem] leading-[0.9] tracking-[-0.045em] text-[#0D47A1] dark:text-[#EAF2FF] min-[380px]:text-[4.6rem] sm:text-[6rem] md:text-[7rem] lg:text-[6.6rem] xl:text-[7.5rem]">
             Hi, I&apos;m
             <br />
             <span className="text-[#2196F3] dark:text-[#60A5FA]">
@@ -74,7 +73,7 @@ export function Hero() {
           initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 14 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.12, ease: "easeOut" }}
-          className="relative z-10 mx-auto mt-2 w-full max-w-[480px] sm:max-w-[540px] lg:mt-12 lg:max-w-[590px]"
+          className="relative z-10 mx-auto mt-2 w-full max-w-[480px] sm:max-w-[540px] lg:mt-2 lg:max-w-[590px]"
         >
           <PersonalWorkspaceIllustration />
         </motion.div>
